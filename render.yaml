@@ -1,2 +1,6 @@
 startCommand: python app.py
-buildCommand: playwright install --with-deps
+
+build:
+  commands:
+    - pip install -r requirements.txt
+    - playwright install --with-deps
