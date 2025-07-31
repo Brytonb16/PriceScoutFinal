@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+import traceback
+
+# Import your real scraper functions
 from scrapers.mobile_sentrix import scrape_mobile_sentrix
 from scrapers.fixez import scrape_fixez
 from scrapers.mengtor import scrape_mengtor
@@ -14,38 +17,49 @@ def home():
 
 @app.route("/api/search")
 def search():
-    query = request.args.get("q", "")
-    in_stock = request.args.get("inStock", "false") == "true"
+    query = request.args.get("q", "").strip()
+    in_stock = request.args.get("inStock", "false").lower() == "true"
 
-    print(f"[SEARCH] Query: '{query}', In Stock Only: {in_stock}")
+    print(f"\n=== New Search ===\nQuery: {query}\nIn-Stock Only: {in_stock}")
 
     all_results = []
 
     try:
-        all_results += scrape_mobile_sentrix(query)
+        results = scrape_mobile_sentrix(query)
+        print(f"MobileSentrix returned {len(results)} results")
+        all_results.extend(results)
     except Exception as e:
-        print(f"[MobileSentrix ERROR] {e}")
+        print("Error in MobileSentrix scraper:")
+        traceback.print_exc()
 
     try:
-        all_results += scrape_fixez(query)
+        results = scrape_fixez(query)
+        print(f"Fixez returned {len(results)} results")
+        all_results.extend(results)
     except Exception as e:
-        print(f"[Fixez ERROR] {e}")
+        print("Error in Fixez scraper:")
+        traceback.print_exc()
 
     try:
-        all_results += scrape_mengtor(query)
+        results = scrape_mengtor(query)
+        print(f"Mengtor returned {len(results)} results")
+        all_results.extend(results)
     except Exception as e:
-        print(f"[Mengtor ERROR] {e}")
+        print("Error in Mengtor scraper:")
+        traceback.print_exc()
 
     try:
-        all_results += scrape_laptopscreen(query)
+        results = scrape_laptopscreen(query)
+        print(f"Laptopscreen returned {len(results)} results")
+        all_results.extend(results)
     except Exception as e:
-        print(f"[Laptopscreen ERROR] {e}")
+        print("Error in Laptopscreen scraper:")
+        traceback.print_exc()
 
-    # Optional: Filter by stock
     if in_stock:
         all_results = [item for item in all_results if item.get("in_stock")]
-        
-print(f"[RETURNING RESULTS] {all_results}")
+
+    print(f"Returning {len(all_results)} results\n")
     return jsonify(all_results)
 
 if __name__ == "__main__":
