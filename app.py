@@ -10,25 +10,34 @@ from scrapers.laptopscreen import scrape_laptopscreen
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/api/search')
+@app.route("/api/search")
 def search():
     query = request.args.get("q", "")
-    in_stock_only = request.args.get("inStock", "false").lower() == "true"
+    in_stock = request.args.get("inStock", "false") == "true"
 
-    results = []
-    results += scrape_mobile_sentrix(query)
-    results += scrape_fixez(query)
-    results += scrape_mengtor(query)
-    results += scrape_laptopscreen(query)
+    all_results = []
+    try:
+        all_results += scrape_mobile_sentrix(query)
+    except Exception as e:
+        print(f"[MobileSentrix ERROR] {e}")
+    
+    try:
+        all_results += scrape_fixez(query)
+    except Exception as e:
+        print(f"[Fixez ERROR] {e}")
+    
+    try:
+        all_results += scrape_mengtor(query)
+    except Exception as e:
+        print(f"[Mengtor ERROR] {e}")
+    
+    try:
+        all_results += scrape_laptopscreen(query)
+    except Exception as e:
+        print(f"[Laptopscreen ERROR] {e}")
+    
+    return jsonify(all_results)
 
-    if in_stock_only:
-        results = [r for r in results if r["in_stock"]]
-
-    return jsonify(results)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
