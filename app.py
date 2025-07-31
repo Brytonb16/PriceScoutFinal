@@ -44,7 +44,8 @@ def search():
     # Optional: Filter by stock
     if in_stock:
         all_results = [item for item in all_results if item.get("in_stock")]
-
+        
+print(f"[RETURNING RESULTS] {all_results}")
     return jsonify(all_results)
 
 if __name__ == "__main__":
